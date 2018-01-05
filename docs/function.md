@@ -4,7 +4,7 @@
 
 ### 基本用法
 
-在ES6之前，不能直接为函数的参数指定默认值，只能采用变通的方法。
+ES6 之前，不能直接为函数的参数指定默认值，只能采用变通的方法。
 
 ```javascript
 function log(x, y) {
@@ -47,7 +47,7 @@ function Point(x = 0, y = 0) {
   this.y = y;
 }
 
-var p = new Point();
+const p = new Point();
 p // { x: 0, y: 0 }
 ```
 
@@ -67,13 +67,19 @@ function foo(x = 5) {
 使用参数默认值时，函数不能有同名参数。
 
 ```javascript
+// 不报错
+function foo(x, x, y) {
+  // ...
+}
+
+// 报错
 function foo(x, x, y = 1) {
   // ...
 }
 // SyntaxError: Duplicate parameter name not allowed in this context
 ```
 
-另外，一个容易忽略的地方是，如果参数默认值是变量，那么参数就不是传值的，而是每次都重新计算默认值表达式的值。也就是说，参数默认值是惰性求值的。
+另外，一个容易忽略的地方是，参数默认值不是传值的，而是每次都重新计算默认值表达式的值。也就是说，参数默认值是惰性求值的。
 
 ```javascript
 let x = 99;
@@ -98,15 +104,25 @@ function foo({x, y = 5}) {
   console.log(x, y);
 }
 
-foo({}) // undefined, 5
-foo({x: 1}) // 1, 5
-foo({x: 1, y: 2}) // 1, 2
+foo({}) // undefined 5
+foo({x: 1}) // 1 5
+foo({x: 1, y: 2}) // 1 2
 foo() // TypeError: Cannot read property 'x' of undefined
 ```
 
-上面代码使用了对象的解构赋值默认值，而没有使用函数参数的默认值。只有当函数`foo`的参数是一个对象时，变量`x`和`y`才会通过解构赋值而生成。如果函数`foo`调用时参数不是对象，变量`x`和`y`就不会生成，从而报错。如果参数对象没有`y`属性，`y`的默认值5才会生效。
+上面代码只使用了对象的解构赋值默认值，没有使用函数参数的默认值。只有当函数`foo`的参数是一个对象时，变量`x`和`y`才会通过解构赋值生成。如果函数`foo`调用时没提供参数，变量`x`和`y`就不会生成，从而报错。通过提供函数参数的默认值，就可以避免这种情况。
 
-下面是另一个对象的解构赋值默认值的例子。
+```javascript
+function foo({x, y = 5} = {}) {
+  console.log(x, y);
+}
+
+foo() // undefined 5
+```
+
+上面代码指定，如果没有提供参数，函数`foo`的参数默认为一个空对象。
+
+下面是另一个解构赋值默认值的例子。
 
 ```javascript
 function fetch(url, { body = '', method = 'GET', headers = {} }) {
@@ -120,12 +136,10 @@ fetch('http://example.com')
 // 报错
 ```
 
-上面代码中，如果函数`fetch`的第二个参数是一个对象，就可以为它的三个属性设置默认值。
-
-上面的写法不能省略第二个参数，如果结合函数参数的默认值，就可以省略第二个参数。这时，就出现了双重默认值。
+上面代码中，如果函数`fetch`的第二个参数是一个对象，就可以为它的三个属性设置默认值。这种写法不能省略第二个参数，如果结合函数参数的默认值，就可以省略第二个参数。这时，就出现了双重默认值。
 
 ```javascript
-function fetch(url, { method = 'GET' } = {}) {
+function fetch(url, { body = '', method = 'GET', headers = {} } = {}) {
   console.log(method);
 }
 
@@ -135,7 +149,7 @@ fetch('http://example.com')
 
 上面代码中，函数`fetch`没有第二个参数时，函数参数的默认值就会生效，然后才是解构赋值的默认值生效，变量`method`才会取到默认值`GET`。
 
-再请问下面两种写法有什么差别？
+作为练习，请问下面两种写法有什么差别？
 
 ```javascript
 // 写法一
@@ -156,15 +170,15 @@ function m2({x, y} = { x: 0, y: 0 }) {
 m1() // [0, 0]
 m2() // [0, 0]
 
-// x和y都有值的情况
+// x 和 y 都有值的情况
 m1({x: 3, y: 8}) // [3, 8]
 m2({x: 3, y: 8}) // [3, 8]
 
-// x有值，y无值的情况
+// x 有值，y 无值的情况
 m1({x: 3}) // [3, 0]
 m2({x: 3}) // [3, undefined]
 
-// x和y都无值的情况
+// x 和 y 都无值的情况
 m1({}) // [0, 0];
 m2({}) // [undefined, undefined]
 
@@ -223,9 +237,9 @@ foo(undefined, null)
 (function (a, b, c = 5) {}).length // 2
 ```
 
-上面代码中，`length`属性的返回值，等于函数的参数个数减去指定了默认值的参数个数。比如，上面最后一个函数，定义了3个参数，其中有一个参数`c`指定了默认值，因此`length`属性等于`3`减去`1`，最后得到`2`。
+上面代码中，`length`属性的返回值，等于函数的参数个数减去指定了默认值的参数个数。比如，上面最后一个函数，定义了 3 个参数，其中有一个参数`c`指定了默认值，因此`length`属性等于`3`减去`1`，最后得到`2`。
 
-这是因为`length`属性的含义是，该函数预期传入的参数个数。某个参数指定默认值以后，预期传入的参数个数就不包括这个参数了。同理，rest参数也不会计入`length`属性。
+这是因为`length`属性的含义是，该函数预期传入的参数个数。某个参数指定默认值以后，预期传入的参数个数就不包括这个参数了。同理，后文的 rest 参数也不会计入`length`属性。
 
 ```javascript
 (function(...args) {}).length // 0
@@ -299,9 +313,9 @@ foo() // ReferenceError: x is not defined
 ```javascript
 let foo = 'outer';
 
-function bar(func = x => foo) {
+function bar(func = () => foo) {
   let foo = 'inner';
-  console.log(func()); 
+  console.log(func());
 }
 
 bar(); // outer
@@ -379,9 +393,9 @@ foo()
 function foo(optional = undefined) { ··· }
 ```
 
-## rest参数
+## rest 参数
 
-ES6 引入 rest 参数（形式为“...变量名”），用于获取函数的多余参数，这样就不需要使用`arguments`对象了。rest 参数搭配的变量是一个数组，该变量将多余的参数放入数组中。
+ES6 引入 rest 参数（形式为`...变量名`），用于获取函数的多余参数，这样就不需要使用`arguments`对象了。rest 参数搭配的变量是一个数组，该变量将多余的参数放入数组中。
 
 ```javascript
 function add(...values) {
@@ -413,7 +427,7 @@ const sortNumbers = (...numbers) => numbers.sort();
 
 上面代码的两种写法，比较后可以发现，rest 参数的写法更自然也更简洁。
 
-rest 参数中的变量代表一个数组，所以数组特有的方法都可以用于这个变量。下面是一个利用 rest 参数改写数组`push`方法的例子。
+`arguments`对象不是数组，而是一个类似数组的对象。所以为了使用数组的方法，必须使用`Array.prototype.slice.call`先将其转为数组。rest 参数就不存在这个问题，它就是一个真正的数组，数组特有的方法都可以使用。下面是一个利用 rest 参数改写数组`push`方法的例子。
 
 ```javascript
 function push(array, ...items) {
@@ -442,283 +456,6 @@ function f(a, ...b, c) {
 (function(a) {}).length  // 1
 (function(...a) {}).length  // 0
 (function(a, ...b) {}).length  // 1
-```
-
-## 扩展运算符
-
-### 含义
-
-扩展运算符（spread）是三个点（`...`）。它好比 rest 参数的逆运算，将一个数组转为用逗号分隔的参数序列。
-
-```javascript
-console.log(...[1, 2, 3])
-// 1 2 3
-
-console.log(1, ...[2, 3, 4], 5)
-// 1 2 3 4 5
-
-[...document.querySelectorAll('div')]
-// [<div>, <div>, <div>]
-```
-
-该运算符主要用于函数调用。
-
-```javascript
-function push(array, ...items) {
-  array.push(...items);
-}
-
-function add(x, y) {
-  return x + y;
-}
-
-var numbers = [4, 38];
-add(...numbers) // 42
-```
-
-上面代码中，`array.push(...items)`和`add(...numbers)`这两行，都是函数的调用，它们的都使用了扩展运算符。该运算符将一个数组，变为参数序列。
-
-扩展运算符与正常的函数参数可以结合使用，非常灵活。
-
-```javascript
-function f(v, w, x, y, z) { }
-var args = [0, 1];
-f(-1, ...args, 2, ...[3]);
-```
-
-### 替代数组的apply方法
-
-由于扩展运算符可以展开数组，所以不再需要`apply`方法，将数组转为函数的参数了。
-
-```javascript
-// ES5的写法
-function f(x, y, z) {
-  // ...
-}
-var args = [0, 1, 2];
-f.apply(null, args);
-
-// ES6的写法
-function f(x, y, z) {
-  // ...
-}
-var args = [0, 1, 2];
-f(...args);
-```
-
-下面是扩展运算符取代`apply`方法的一个实际的例子，应用`Math.max`方法，简化求出一个数组最大元素的写法。
-
-```javascript
-// ES5的写法
-Math.max.apply(null, [14, 3, 77])
-
-// ES6的写法
-Math.max(...[14, 3, 77])
-
-// 等同于
-Math.max(14, 3, 77);
-```
-
-上面代码表示，由于JavaScript不提供求数组最大元素的函数，所以只能套用`Math.max`函数，将数组转为一个参数序列，然后求最大值。有了扩展运算符以后，就可以直接用`Math.max`了。
-
-另一个例子是通过`push`函数，将一个数组添加到另一个数组的尾部。
-
-```javascript
-// ES5的写法
-var arr1 = [0, 1, 2];
-var arr2 = [3, 4, 5];
-Array.prototype.push.apply(arr1, arr2);
-
-// ES6的写法
-var arr1 = [0, 1, 2];
-var arr2 = [3, 4, 5];
-arr1.push(...arr2);
-```
-
-上面代码的ES5写法中，`push`方法的参数不能是数组，所以只好通过`apply`方法变通使用`push`方法。有了扩展运算符，就可以直接将数组传入`push`方法。
-
-下面是另外一个例子。
-
-```javascript
-// ES5
-new (Date.bind.apply(Date, [null, 2015, 1, 1]))
-// ES6
-new Date(...[2015, 1, 1]);
-```
-
-### 扩展运算符的应用
-
-**（1）合并数组**
-
-扩展运算符提供了数组合并的新写法。
-
-```javascript
-// ES5
-[1, 2].concat(more)
-// ES6
-[1, 2, ...more]
-
-var arr1 = ['a', 'b'];
-var arr2 = ['c'];
-var arr3 = ['d', 'e'];
-
-// ES5的合并数组
-arr1.concat(arr2, arr3);
-// [ 'a', 'b', 'c', 'd', 'e' ]
-
-// ES6的合并数组
-[...arr1, ...arr2, ...arr3]
-// [ 'a', 'b', 'c', 'd', 'e' ]
-```
-
-**（2）与解构赋值结合**
-
-扩展运算符可以与解构赋值结合起来，用于生成数组。
-
-```javascript
-// ES5
-a = list[0], rest = list.slice(1)
-// ES6
-[a, ...rest] = list
-```
-
-下面是另外一些例子。
-
-```javascript
-const [first, ...rest] = [1, 2, 3, 4, 5];
-first // 1
-rest  // [2, 3, 4, 5]
-
-const [first, ...rest] = [];
-first // undefined
-rest  // []
-
-const [first, ...rest] = ["foo"];
-first  // "foo"
-rest   // []
-```
-
-如果将扩展运算符用于数组赋值，只能放在参数的最后一位，否则会报错。
-
-```javascript
-const [...butLast, last] = [1, 2, 3, 4, 5];
-// 报错
-
-const [first, ...middle, last] = [1, 2, 3, 4, 5];
-// 报错
-```
-
-**（3）函数的返回值**
-
-JavaScript的函数只能返回一个值，如果需要返回多个值，只能返回数组或对象。扩展运算符提供了解决这个问题的一种变通方法。
-
-```javascript
-var dateFields = readDateFields(database);
-var d = new Date(...dateFields);
-```
-
-上面代码从数据库取出一行数据，通过扩展运算符，直接将其传入构造函数`Date`。
-
-**（4）字符串**
-
-扩展运算符还可以将字符串转为真正的数组。
-
-```javascript
-[...'hello']
-// [ "h", "e", "l", "l", "o" ]
-```
-
-上面的写法，有一个重要的好处，那就是能够正确识别32位的Unicode字符。
-
-```javascript
-'x\uD83D\uDE80y'.length // 4
-[...'x\uD83D\uDE80y'].length // 3
-```
-
-上面代码的第一种写法，JavaScript会将32位Unicode字符，识别为2个字符，采用扩展运算符就没有这个问题。因此，正确返回字符串长度的函数，可以像下面这样写。
-
-```javascript
-function length(str) {
-  return [...str].length;
-}
-
-length('x\uD83D\uDE80y') // 3
-```
-
-凡是涉及到操作32位Unicode字符的函数，都有这个问题。因此，最好都用扩展运算符改写。
-
-```javascript
-let str = 'x\uD83D\uDE80y';
-
-str.split('').reverse().join('')
-// 'y\uDE80\uD83Dx'
-
-[...str].reverse().join('')
-// 'y\uD83D\uDE80x'
-```
-
-上面代码中，如果不用扩展运算符，字符串的`reverse`操作就不正确。
-
-**（5）实现了Iterator接口的对象**
-
-任何Iterator接口的对象，都可以用扩展运算符转为真正的数组。
-
-```javascript
-var nodeList = document.querySelectorAll('div');
-var array = [...nodeList];
-```
-
-上面代码中，`querySelectorAll`方法返回的是一个`nodeList`对象。它不是数组，而是一个类似数组的对象。这时，扩展运算符可以将其转为真正的数组，原因就在于`NodeList`对象实现了Iterator接口。
-
-对于那些没有部署Iterator接口的类似数组的对象，扩展运算符就无法将其转为真正的数组。
-
-```javascript
-let arrayLike = {
-  '0': 'a',
-  '1': 'b',
-  '2': 'c',
-  length: 3
-};
-
-// TypeError: Cannot spread non-iterable object.
-let arr = [...arrayLike];
-```
-
-上面代码中，`arrayLike`是一个类似数组的对象，但是没有部署Iterator接口，扩展运算符就会报错。这时，可以改为使用`Array.from`方法将`arrayLike`转为真正的数组。
-
-**（6）Map和Set结构，Generator函数**
-
-扩展运算符内部调用的是数据结构的Iterator接口，因此只要具有Iterator接口的对象，都可以使用扩展运算符，比如Map结构。
-
-```javascript
-let map = new Map([
-  [1, 'one'],
-  [2, 'two'],
-  [3, 'three'],
-]);
-
-let arr = [...map.keys()]; // [1, 2, 3]
-```
-
-Generator函数运行后，返回一个遍历器对象，因此也可以使用扩展运算符。
-
-```javascript
-var go = function*(){
-  yield 1;
-  yield 2;
-  yield 3;
-};
-
-[...go()] // [1, 2, 3]
-```
-
-上面代码中，变量`go`是一个Generator函数，执行后返回的是一个遍历器对象，对这个遍历器对象执行扩展运算符，就会将内部遍历得到的值，转为一个数组。
-
-如果对没有`iterator`接口的对象，使用扩展运算符，将会报错。
-
-```javascript
-var obj = {a: 1, b: 2};
-let arr = [...obj]; // TypeError: Cannot spread non-iterable object
 ```
 
 ## 严格模式
@@ -840,7 +577,7 @@ bar.name // "baz"
 (new Function).name // "anonymous"
 ```
 
-`bind`返回的函数，`name`属性值会加上`bound `前缀。
+`bind`返回的函数，`name`属性值会加上`bound`前缀。
 
 ```javascript
 function foo() {};
@@ -853,7 +590,7 @@ foo.bind({}).name // "bound foo"
 
 ### 基本用法
 
-ES6允许使用“箭头”（`=>`）定义函数。
+ES6 允许使用“箭头”（`=>`）定义函数。
 
 ```javascript
 var f = v => v;
@@ -887,10 +624,20 @@ var sum = function(num1, num2) {
 var sum = (num1, num2) => { return num1 + num2; }
 ```
 
-由于大括号被解释为代码块，所以如果箭头函数直接返回一个对象，必须在对象外面加上括号。
+由于大括号被解释为代码块，所以如果箭头函数直接返回一个对象，必须在对象外面加上括号，否则会报错。
 
 ```javascript
-var getTempItem = id => ({ id: id, name: "Temp" });
+// 报错
+let getTempItem = id => { id: id, name: "Temp" };
+
+// 不报错
+let getTempItem = id => ({ id: id, name: "Temp" });
+```
+
+如果箭头函数只有一行语句，且不需要返回值，可以采用下面的写法，就不用写大括号了。
+
+```javascript
+let fn = () => void doesNotReturn();
 ```
 
 箭头函数可以与变量解构结合使用。
@@ -937,7 +684,7 @@ var result = values.sort(function (a, b) {
 var result = values.sort((a, b) => a - b);
 ```
 
-下面是rest参数与箭头函数结合的例子。
+下面是 rest 参数与箭头函数结合的例子。
 
 ```javascript
 const numbers = (...nums) => nums;
@@ -959,9 +706,9 @@ headAndTail(1, 2, 3, 4, 5)
 
 （2）不可以当作构造函数，也就是说，不可以使用`new`命令，否则会抛出一个错误。
 
-（3）不可以使用`arguments`对象，该对象在函数体内不存在。如果要用，可以用Rest参数代替。
+（3）不可以使用`arguments`对象，该对象在函数体内不存在。如果要用，可以用 rest 参数代替。
 
-（4）不可以使用`yield`命令，因此箭头函数不能用作Generator函数。
+（4）不可以使用`yield`命令，因此箭头函数不能用作 Generator 函数。
 
 上面四点中，第一点尤其值得注意。`this`对象的指向是可变的，但是在箭头函数中，它是固定的。
 
@@ -978,7 +725,7 @@ foo.call({ id: 42 });
 // id: 42
 ```
 
-上面代码中，`setTimeout`的参数是一个箭头函数，这个箭头函数的定义生效是在`foo`函数生成时，而它的真正执行要等到100毫秒后。如果是普通函数，执行时`this`应该指向全局对象`window`，这时应该输出`21`。但是，箭头函数导致`this`总是指向函数定义生效时所在的对象（本例是`{id: 42}`），所以输出的是`42`。
+上面代码中，`setTimeout`的参数是一个箭头函数，这个箭头函数的定义生效是在`foo`函数生成时，而它的真正执行要等到 100 毫秒后。如果是普通函数，执行时`this`应该指向全局对象`window`，这时应该输出`21`。但是，箭头函数导致`this`总是指向函数定义生效时所在的对象（本例是`{id: 42}`），所以输出的是`42`。
 
 箭头函数可以让`setTimeout`里面的`this`，绑定定义时所在的作用域，而不是指向运行时所在的作用域。下面是另一个例子。
 
@@ -1002,9 +749,9 @@ setTimeout(() => console.log('s2: ', timer.s2), 3100);
 // s2: 0
 ```
 
-上面代码中，`Timer`函数内部设置了两个定时器，分别使用了箭头函数和普通函数。前者的`this`绑定定义时所在的作用域（即`Timer`函数），后者的`this`指向运行时所在的作用域（即全局对象）。所以，3100毫秒之后，`timer.s1`被更新了3次，而`timer.s2`一次都没更新。
+上面代码中，`Timer`函数内部设置了两个定时器，分别使用了箭头函数和普通函数。前者的`this`绑定定义时所在的作用域（即`Timer`函数），后者的`this`指向运行时所在的作用域（即全局对象）。所以，3100 毫秒之后，`timer.s1`被更新了 3 次，而`timer.s2`一次都没更新。
 
-箭头函数可以让`this`指向固定化，这种特性很有利于封装回调函数。下面是一个例子，DOM事件的回调函数封装在一个对象里面。
+箭头函数可以让`this`指向固定化，这种特性很有利于封装回调函数。下面是一个例子，DOM 事件的回调函数封装在一个对象里面。
 
 ```javascript
 var handler = {
@@ -1025,7 +772,7 @@ var handler = {
 
 `this`指向的固定化，并不是因为箭头函数内部有绑定`this`的机制，实际原因是箭头函数根本没有自己的`this`，导致内部的`this`就是外层代码块的`this`。正是因为它没有`this`，所以也就不能用作构造函数。
 
-所以，箭头函数转成ES5的代码如下。
+所以，箭头函数转成 ES5 的代码如下。
 
 ```javascript
 // ES6
@@ -1045,7 +792,7 @@ function foo() {
 }
 ```
 
-上面代码中，转换后的ES5版本清楚地说明了，箭头函数里面根本没有自己的`this`，而是引用外层的`this`。
+上面代码中，转换后的 ES5 版本清楚地说明了，箭头函数里面根本没有自己的`this`，而是引用外层的`this`。
 
 请问下面的代码之中有几个`this`？
 
@@ -1097,11 +844,11 @@ foo(2, 4, 6, 8)
 
 上面代码中，箭头函数没有自己的`this`，所以`bind`方法无效，内部的`this`指向外部的`this`。
 
-长期以来，JavaScript语言的`this`对象一直是一个令人头痛的问题，在对象方法中使用`this`，必须非常小心。箭头函数”绑定”`this`，很大程度上解决了这个困扰。
+长期以来，JavaScript 语言的`this`对象一直是一个令人头痛的问题，在对象方法中使用`this`，必须非常小心。箭头函数”绑定”`this`，很大程度上解决了这个困扰。
 
 ### 嵌套的箭头函数
 
-箭头函数内部，还可以再使用箭头函数。下面是一个ES5语法的多重嵌套函数。
+箭头函数内部，还可以再使用箭头函数。下面是一个 ES5 语法的多重嵌套函数。
 
 ```javascript
 function insert(value) {
@@ -1151,7 +898,7 @@ mult2(plus1(5))
 // 12
 ```
 
-箭头函数还有一个功能，就是可以很方便地改写λ演算。
+箭头函数还有一个功能，就是可以很方便地改写 λ 演算。
 
 ```javascript
 // λ演算的写法
@@ -1162,13 +909,13 @@ var fix = f => (x => f(v => x(x)(v)))
                (x => f(v => x(x)(v)));
 ```
 
-上面两种写法，几乎是一一对应的。由于λ演算对于计算机科学非常重要，这使得我们可以用ES6作为替代工具，探索计算机科学。
+上面两种写法，几乎是一一对应的。由于 λ 演算对于计算机科学非常重要，这使得我们可以用 ES6 作为替代工具，探索计算机科学。
 
-## 绑定 this
+## 双冒号运算符
 
-箭头函数可以绑定`this`对象，大大减少了显式绑定`this`对象的写法（`call`、`apply`、`bind`）。但是，箭头函数并不适用于所有场合，所以ES7提出了“函数绑定”（function bind）运算符，用来取代`call`、`apply`、`bind`调用。虽然该语法还是ES7的一个[提案](https://github.com/zenparsing/es-function-bind)，但是Babel转码器已经支持。
+箭头函数可以绑定`this`对象，大大减少了显式绑定`this`对象的写法（`call`、`apply`、`bind`）。但是，箭头函数并不适用于所有场合，所以现在有一个[提案](https://github.com/zenparsing/es-function-bind)，提出了“函数绑定”（function bind）运算符，用来取代`call`、`apply`、`bind`调用。
 
-函数绑定运算符是并排的两个双冒号（::），双冒号左边是一个对象，右边是一个函数。该运算符会自动将左边的对象，作为上下文环境（即this对象），绑定到右边的函数上面。
+函数绑定运算符是并排的两个冒号（`::`），双冒号左边是一个对象，右边是一个函数。该运算符会自动将左边的对象，作为上下文环境（即`this`对象），绑定到右边的函数上面。
 
 ```javascript
 foo::bar;
@@ -1197,7 +944,7 @@ let log = ::console.log;
 var log = console.log.bind(console);
 ```
 
-由于双冒号运算符返回的还是原对象，因此可以采用链式写法。
+双冒号运算符的运算结果，还是一个对象，因此可以采用链式写法。
 
 ```javascript
 // 例一
@@ -1431,7 +1178,7 @@ factorial(5) // 120
 
 上面代码中，参数`total`有默认值`1`，所以调用时不用提供这个值。
 
-总结一下，递归本质上是一种循环操作。纯粹的函数式编程语言没有循环操作命令，所有的循环都用递归实现，这就是为什么尾递归对这些语言极其重要。对于其他支持“尾调用优化”的语言（比如Lua，ES6），只需要知道循环可以用递归代替，而一旦使用递归，就最好使用尾递归。
+总结一下，递归本质上是一种循环操作。纯粹的函数式编程语言没有循环操作命令，所有的循环都用递归实现，这就是为什么尾递归对这些语言极其重要。对于其他支持“尾调用优化”的语言（比如 Lua，ES6），只需要知道循环可以用递归代替，而一旦使用递归，就最好使用尾递归。
 
 ### 严格模式
 
@@ -1474,7 +1221,7 @@ sum(1, 100000)
 // Uncaught RangeError: Maximum call stack size exceeded(…)
 ```
 
-上面代码中，`sum`是一个递归函数，参数`x`是需要累加的值，参数`y`控制递归次数。一旦指定`sum`递归100000次，就会报错，提示超出调用栈的最大次数。
+上面代码中，`sum`是一个递归函数，参数`x`是需要累加的值，参数`y`控制递归次数。一旦指定`sum`递归 100000 次，就会报错，提示超出调用栈的最大次数。
 
 蹦床函数（trampoline）可以将递归执行转为循环执行。
 
@@ -1582,3 +1329,39 @@ clownsEverywhere(
 
 这样的规定也使得，函数参数与数组和对象的尾逗号规则，保持一致了。
 
+## catch 语句的参数
+
+目前，有一个[提案](https://github.com/tc39/proposal-optional-catch-binding)，允许`try...catch`结构中的`catch`语句调用时不带有参数。这个提案跟参数有关，也放在这一章介绍。
+
+传统的写法是`catch`语句必须带有参数，用来接收`try`代码块抛出的错误。
+
+```javascript
+try {
+  //  ···
+} catch (error) {
+  //  ···
+}
+```
+
+新的写法允许省略`catch`后面的参数，而不报错。
+
+```javascript
+try {
+  //  ···
+} catch {
+  //  ···
+}
+```
+
+新写法只在不需要错误实例的情况下有用，因此不及传统写法的用途广。
+
+```javascript
+let jsonData;
+try {
+  jsonData = JSON.parse(str);
+} catch {
+  jsonData = DEFAULT_DATA;
+}
+```
+
+上面代码中，`JSON.parse`报错只有一种可能：解析失败。因此，可以不需要抛出的错误实例。
